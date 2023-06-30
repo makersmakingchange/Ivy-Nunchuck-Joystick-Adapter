@@ -14,7 +14,7 @@ void NunchuckInput::readData() {
   
   xRaw = nunchuck_.getJoyX();
   yRaw = nunchuck_.getJoyY();
-  button1State = nunchuck_.getButtonC(); 
+  button1State = nunchuck_.getButtonC(); //true when pressed
   button2State = nunchuck_.getButtonZ();
   button3State = false;
   button4State = false;

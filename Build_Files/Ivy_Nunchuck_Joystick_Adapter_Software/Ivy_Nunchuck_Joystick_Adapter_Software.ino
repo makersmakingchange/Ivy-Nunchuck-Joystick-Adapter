@@ -12,7 +12,7 @@
 #include <Adafruit_NeoPixel.h> // To control light on Adafruit QTPY
 
 
-#define DEBUG_MODE true
+#define DEBUG_MODE false
 
 #define JOYSTICK_REACTION_TIME               50             //Minimum time between each action in ms
 #define SWITCH_REACTION_TIME                 100            //Minimum time between each switch action in ms
@@ -21,12 +21,11 @@
 #define JOYSTICK_MODEL                        1
 #define JOYSTICK_VERSION                      2
 
-
 XACGamepad gamepad;                                    //Starts an instance of the USB gamepad object
 NunchuckInput joystickInput;
 
 //Declare variables for settings
-int isConfigured;
+int isConfigured; // 
 int modelNumber;
 int versionNumber;
 int deadzoneLevel;
@@ -120,39 +119,40 @@ void setup() {
   pixels.show();
   delay(1000);
 
-  initMemory();   // Initialize Memory
-  delay(5);
 
   // Begin serial
   Serial.begin(115200);
 
-  if(DEBUG_MODE){
-    while(!Serial){
+  if (DEBUG_MODE) {
+    while (!Serial) {
       delay(100);
     }
   }
 
+  initMemory();   // Initialize Memory
+  delay(5);
+
   // Initialize Joystick
   initJoystick();
 
-  //checkSetupMode();
+  checkSetupMode();
 
   // Begin HID gamepad or mouse, depending on mode selection
   switch (operatingMode) {
     case 0:
-        Serial.println("USB HID Mouse activataed");
-        Mouse.begin();
-        pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Turn LED yellow
-        pixels.show();
-        break;
+      Serial.println("USB HID Mouse activataed");
+      Mouse.begin();
+      pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Turn LED yellow
+      pixels.show();
+      break;
 
     case 1:
-        Serial.println("USB HID Gamepad activated");
-        gamepad.begin();
-        pixels.setPixelColor(0, pixels.Color(0, 0, 255)); // Turn LED blue
-        pixels.show();
-        break;
-    }
+      Serial.println("USB HID Gamepad activated");
+      gamepad.begin();
+      pixels.setPixelColor(0, pixels.Color(0, 0, 255)); // Turn LED blue
+      pixels.show();
+      break;
+  }
 
 
 
@@ -313,35 +313,17 @@ void readSwitch() {
   switchCState = joystickInput.button3State;
   switchDState = joystickInput.button4State;
 
-  //Perform button actions
-  if (switchAState) {
-    gamepadButtonPress(switchProperty[0].switchButtonNumber);
-  }
-  else if (switchAState && !switchAPrevState) {
-    gamepadButtonRelease(switchProperty[0].switchButtonNumber);
-  }
-  switchAPrevState = switchAState;
+  switch (operatingMode) {
+    case 0:
+      mouseSwitches();
+      break;
+    case 1:
+      joystickSwitches();
+      break;
 
-  if (switchBState) {
-    gamepadButtonPress(switchProperty[1].switchButtonNumber);
-  } else if (switchBState && !switchBPrevState) {
-    gamepadButtonRelease(switchProperty[1].switchButtonNumber);
   }
-  switchBPrevState = switchBState;
 
-  if (switchCState) {
-    gamepadButtonPress(switchProperty[2].switchButtonNumber);
-  } else if (switchCState && !switchCPrevState) {
-    gamepadButtonRelease(switchProperty[2].switchButtonNumber);
-  }
-  switchCPrevState = switchCState;
 
-  if (switchDState) {
-    gamepadButtonPress(switchProperty[3].switchButtonNumber);
-  } else if (switchDState && !switchJoyPrevState) {
-    gamepadButtonRelease(switchProperty[3].switchButtonNumber);
-  }
-  switchJoyPrevState = switchDState;
 
 }
 
@@ -361,7 +343,7 @@ void checkSetupMode() {
   switchAState = joystickInput.button1State;
   switchBState = joystickInput.button2State;
 
-  if (switchAState == LOW && switchBState == LOW) {
+  if (switchAState == 1 && switchBState == 1) {
     Serial.println("Mode selection: Press Button C to Switch Mode, Button Z to Confirm selection");
     boolean continueLoop = true;
     int mode = 0;
@@ -370,7 +352,7 @@ void checkSetupMode() {
       switchAState = joystickInput.button1State;
       switchBState = joystickInput.button2State;
 
-      if (switchAState == LOW) {
+      if (switchAState == 1) {
         mode += 1;
         if (mode > 1) {
           mode = 0;
@@ -393,7 +375,7 @@ void checkSetupMode() {
             break;
         }
       }
-      if (switchBState == LOW) {
+      if (switchBState == 1) {
         continueLoop = false;
       }
 
@@ -424,28 +406,28 @@ void checkSetupMode() {
 void joystickSwitches() {
 
   //Perform button actions
-  if (!switchAState) {
+  if (switchAState) {
     gamepadButtonPress(switchProperty[0].switchButtonNumber);
   }
-  else if (switchAState && !switchAPrevState) {
+  else if (!switchAState && switchAPrevState) {
     gamepadButtonRelease(switchProperty[0].switchButtonNumber);
   }
 
-  if (!switchBState) {
+  if (switchBState) {
     gamepadButtonPress(switchProperty[1].switchButtonNumber);
-  } else if (switchBState && !switchBPrevState) {
+  } else if (!switchBState && switchBPrevState) {
     gamepadButtonRelease(switchProperty[1].switchButtonNumber);
   }
 
-  if (!switchCState) {
+  if (switchCState) {
     gamepadButtonPress(switchProperty[2].switchButtonNumber);
-  } else if (switchCState && !switchCPrevState) {
+  } else if (!switchCState && switchCPrevState) {
     gamepadButtonRelease(switchProperty[2].switchButtonNumber);
   }
 
-  if (!switchDState) {
+  if (switchDState) {
     gamepadButtonPress(switchProperty[3].switchButtonNumber);
-  } else if (switchDState && !switchJoyPrevState) {
+  } else if (!switchDState && switchJoyPrevState) {
     gamepadButtonRelease(switchProperty[3].switchButtonNumber);
   }
 
@@ -464,30 +446,30 @@ void joystickSwitches() {
 void mouseSwitches() {
 
   //Perform button actions
-  if (!switchAState) {
+  if (switchAState) {
     Mouse.press(MOUSE_LEFT);
   }
-  else if (switchAState && !switchAPrevState) {
+  else if (!switchAState && switchAPrevState) {
     Mouse.release(MOUSE_LEFT);
   }
 
-  if (!switchBState) {
+  if (switchBState) {
     Mouse.press(MOUSE_RIGHT);
-  } else if (switchBState && !switchBPrevState) {
+  } else if (!switchBState && switchBPrevState) {
     Mouse.release(MOUSE_RIGHT);
   }
 
-  //    if(!switchCState) {
-  //      Mouse.press(MOUSE_RIGHT);
-  //    } else if(switchCState && !switchCPrevState) {
-  //      Mouse.release(MOUSE_RIGHT);
-  //    }
-  //
-  //    if(!switchDState) {
-  //      Mouse.press(MOUSE_LEFT);
-  //    } else if(switchDState && !switchJoyPrevState) {
-  //      Mouse.release(MOUSE_LEFT);
-  //    }
+  if (switchCState) {
+    Mouse.press(MOUSE_RIGHT);
+  } else if (!switchCState && switchCPrevState) {
+    Mouse.release(MOUSE_RIGHT);
+  }
+
+  if (switchDState) {
+    Mouse.press(MOUSE_LEFT);
+  } else if (!switchDState && switchJoyPrevState) {
+    Mouse.release(MOUSE_LEFT);
+  }
 
 }
 
