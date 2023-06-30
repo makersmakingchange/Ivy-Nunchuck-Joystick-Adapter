@@ -86,10 +86,10 @@ Reference the [Maker Guide](/Documentation/Ivy-Nunchuck-Adapter_Maker_Guide_v0.1
 ### Documentation
 | Document             | Version | Link |
 |----------------------|---------|------|
-| Design Rationale     | 0.1     | [Ivy-Nunchuck-Adapter_Design_Rationale](/Documentation/Ivy-Nunchuck-Adapter_Design_Rationale_v0.1.pdf)     |
-| Maker Guide          | 0.1     | [Ivy-Nunchuck-Adapter_Maker_Guide](/Documentation/Ivy-Nunchuck-Adapter_Maker_Guide_v0.1.pdf)               |
-| Bill of Materials    | 0.1     | [Ivy-Nunchuck-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Adapter_BOM_v0.1.xlsx)                |
-| User Guide           | 0.1     | [Ivy-Nunchuck-Adapter_User_Guide](/Documentation/Ivy-Nunchuck-Adapter_User_Guide_v0.1.pdf)                |
+| Design Rationale     | 0.1     | [Ivy-Nunchuck-Joystick-Adapter_Design_Rationale](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Design_Rationale_v0.1.pdf)     |
+| Maker Guide          | 0.1     | [Ivy-Nunchuck-Joystick-Adapter_Maker_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Maker_Guide_v0.1.pdf)               |
+| Bill of Materials    | 0.1     | [Ivy-Nunchuck-Joystick-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM_v0.1.xlsx)                |
+| User Guide           | 0.1     | [Ivy-Nunchuck-Joystick-Adapter_User_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_User_Guide_v0.1.pdf)                |
 
 ### Design Files
  - [CAD Files](/Design_Files/CAD)
