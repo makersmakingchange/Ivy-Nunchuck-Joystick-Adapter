@@ -1,7 +1,13 @@
+Version 0.1.1 | 2023-Jul-13
+ - Modified top and bottom enclosure for better fit and function
+
+
 Version 0.1 | 2023-Jun-30 
  - Ivy Nunchuck Adapter Minimum viable product
  - 3D Printed Enclosure
  - Solder-free STEMMA QT electronics assembly
  - Basic USB HID Mouse and USB HID Gamepad output
+
+
 
 
