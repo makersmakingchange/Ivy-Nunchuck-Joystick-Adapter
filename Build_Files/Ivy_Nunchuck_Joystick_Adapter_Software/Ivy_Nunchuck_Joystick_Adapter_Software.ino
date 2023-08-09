@@ -1,57 +1,109 @@
 /*
-  File: Ivy_Nunchuck_Joystick_Adapter_Software.ino
-  Developed by: MakersMakingChange
-  Version: (22 June 2023)
-  Copyright Neil Squire Society 2023.
-  License:
+  File: OpenAT_Joystick_Mouse_M0_Software.ino
+  Software: OpenAT Joystick Plus 4 Switches, with both USB gamepad and mouse funtionality.
+  Developed by: Makers Making Change
+  Version: (19 July 2023)
+  License: GPL v3
+
+  Copyright (C) 2023 Neil Squire Society
+  This program is free software: you can redistribute it and/or modify it under the terms of
+  the GNU General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later version.
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License along with this program.
+  If not, see <http://www.gnu.org/licenses/>
 */
 #include "XACGamepad.h"
-#include "JoystickDefinition.h"
-#include <TinyUSB_Mouse_and_Keyboard.h> // For convenient use of Mouse code
-#include <FlashStorage.h> // For non-volatile storage of settings
-#include <Adafruit_NeoPixel.h> // To control light on Adafruit QTPY
+#include "OpenAT_Joystick_Response.h"
+#include <FlashStorage.h> // Non-volatile memory for storing settings
+#include <TinyUSB_Mouse_and_Keyboard.h> // Convenience library for 
+#include <WiiChuck.h> //Nunchuck communication
+#include <Adafruit_NeoPixel.h> //Lights on QtPy
 
 
-#define DEBUG_MODE false
+#define MODE_MOUSE 1
+#define MODE_GAMEPAD 0
 
-#define JOYSTICK_REACTION_TIME               50             //Minimum time between each action in ms
+#define USB_DEBUG  0 // Set this to 0 for best performance.
+
+#define UPDATE_INTERVAL   5 // TBD Update interval for perfoming HID actions (in milliseconds)
+#define DEFAULT_DEBOUNCING_TIME 5
+
+#define JOYSTICK_DEFAULT_DEADZONE_LEVEL      0              //Joystick deadzone
+#define JOYSTICK_MIN_DEADZONE_LEVEL          0
+#define JOYSTICK_MAX_DEADZONE_LEVEL          10
+#define JOYSTICK_MAX_DEADZONE_VALUE          64             //Out of 127
+#define JOYSTICK_MAX_VALUE                   127
+
+#define JOYSTICK_NUNCHUCK_X_MIN 0
+#define JOYSTICK_NUNCHUCK_X_MAX 255
+#define JOYSTICK_NUNCHUCK_Y_MIN 0
+#define JOYSTICK_NUNCHUCK_Y_MAX 255
+
+#define SLOW_SCROLL_DELAY                    200            //Minimum time, in ms, between each slow scroll action (number of slow scroll actions defined below)
+#define FAST_SCROLL_DELAY                    60             //Minimum time, in ms, between each fast scroll action (higher delay = slower scroll speed)
+#define SLOW_SCROLL_NUM                      10             //Number of times to scroll at the slow scroll rate
+
+#define LONG_PRESS_MILLIS                    2000
+
+//#define JOYSTICK_REACTION_TIME             30             //Minimum time between each action in ms
 #define SWITCH_REACTION_TIME                 100            //Minimum time between each switch action in ms
+#define STARTUP_DELAY_TIME                   5000           //Time to wait on startup
+#define FLASH_DELAY_TIME                     5              //Time to wait after reading/writing flash memory
+
+#define MOUSE_MAX_XY                         6            // Mouse pixels per update at max deflection (max "speed")
 
 //Define model number and version number
 #define JOYSTICK_MODEL                        1
 #define JOYSTICK_VERSION                      2
 
-XACGamepad gamepad;                                    //Starts an instance of the USB gamepad object
-NunchuckInput joystickInput;
 
-//Declare variables for settings
-int isConfigured; // 
-int modelNumber;
-int versionNumber;
-int deadzoneLevel;
-int operatingMode = 0; // 0 - Mouse  ; 1 - Joystick
+void resetJoystick(void); //forward declaration of reset function
 
+XACGamepad gamepad;         //Starts an instance of the USB gamepad object
+Accessory nunchuck;         //instance of nunchuck controller from WiiChuck library
+
+// Declare variables for settings. Default values are written to flash memory on first run, then read back on
+// subsequent power cycles.
+int isConfigured = 0;
+int modelNumber = 0;
+int versionNumber = 2;
+int deadzoneLevel = 1;
+int operatingMode = MODE_MOUSE;   // 1 = Mouse mode, 0 = Joystick Mode
+
+
+// Declarge variables to store in flash
 FlashStorage(isConfiguredFlash, int);
 FlashStorage(modelNumberFlash, int);
 FlashStorage(versionNumberFlash, int);
 FlashStorage(deadzoneLevelFlash, int);
 FlashStorage(operatingModeFlash, int);
 
-//Declare joystick input variables
+long lastInteractionUpdate;
+long ZPressStartMillis = 0;
+
+// Declare joystick input variables
 int inputX;
 int inputY;
+int outputX;
+int outputY;
+int responseX = 0;
+int responseY = 0;
 
 //Declare switch state variables for each switch
-int switchAState;
-int switchBState;
-int switchCState;
-int switchDState;
+int switchAState;           // Mouse mode = left click
+int switchBState;           // Mouse mode = middle click
+int switchCState;           // Mouse mode = right click
+int switchJoyState;         // Mouse mode = left click              // Switch in the joystick (press down)
 
-//Previous status of switches
+// Previous status of switches
 int switchAPrevState = HIGH;
 int switchBPrevState = HIGH;
 int switchCPrevState = HIGH;
 int switchJoyPrevState = HIGH;
+
 
 int currentDeadzoneValue;
 
@@ -96,13 +148,10 @@ const switchStruct switchProperty[] {
   {1, "A", 1},
   {2, "B", 2},
   {3, "C", 3},
-  {4, "D", 4}
-
+  {4, "Joy", 4}
 };
 
-// Create a pixel strand with 1 pixel on
-Adafruit_NeoPixel pixels(1, PIN_NEOPIXEL);
-
+Adafruit_NeoPixel pixels(1, PIN_NEOPIXEL);  // Create a pixel strand with 1 pixel on QtPy
 
 //***MICROCONTROLLER AND PERIPHERAL CONFIGURATION***//
 // Function   : setup
@@ -117,88 +166,110 @@ void setup() {
   pixels.begin(); // Initiate pixel on microcontroller
   pixels.setPixelColor(0, pixels.Color(255, 0, 0)); // Turn LED red to start
   pixels.show();
-  delay(1000);
 
+  if (USB_DEBUG) {
+    Serial.begin(115200);
+  } else {
+    //Serial.end();
+  } // endif
 
-  // Begin serial
-  Serial.begin(115200);
+  // Read Memory
+  readMemory();
+  delay(FLASH_DELAY_TIME);
 
-  if (DEBUG_MODE) {
-    while (!Serial) {
-      delay(100);
-    }
+ // Begin HID gamepad or mouse, depending on mode selection
+  switch (operatingMode) {
+    case MODE_MOUSE:
+      Mouse.begin();
+      break;
+    case MODE_GAMEPAD:
+      gamepad.begin();
+      break;
+    default:
+      break;
   }
-
-  initMemory();   // Initialize Memory
-  delay(5);
 
   // Initialize Joystick
   initJoystick();
+  
+  if (USB_DEBUG) {
+    while (!Serial) {
+      delay(1);
+    }
+    Serial.println("USB Debug mode on. Change flag in code for best performance.");
+  }
+  
+  checkSetupMode(); // Check to see if operating mode change
 
-  checkSetupMode();
+  delay(STARTUP_DELAY_TIME); //startup delay to faciliate reprogramming
 
-  // Begin HID gamepad or mouse, depending on mode selection
-  switch (operatingMode) {
-    case 0:
-      Serial.println("USB HID Mouse activataed");
-      Mouse.begin();
+  // Turn on indicator light, depending on mode selection
+  switch(operatingMode) {
+    case MODE_MOUSE:
       pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Turn LED yellow
       pixels.show();
       break;
-
-    case 1:
-      Serial.println("USB HID Gamepad activated");
-      gamepad.begin();
+    case MODE_GAMEPAD:
       pixels.setPixelColor(0, pixels.Color(0, 0, 255)); // Turn LED blue
       pixels.show();
       break;
   }
 
-
+  lastInteractionUpdate = millis();  // get first timestamp
 
 }
 
 void loop() {
 
   settingsEnabled = serialSettings(settingsEnabled); //Check to see if setting option is enabled
-  readJoystick();
-  readSwitch();
-  delay(JOYSTICK_REACTION_TIME);
+
+  if ((millis()-lastInteractionUpdate) >= UPDATE_INTERVAL) {
+    lastInteractionUpdate = millis();  // get timestamp
+    readJoystick();
+    readSwitch();
+
+    joystickActions();
+
+    switch(operatingMode){
+      case MODE_MOUSE:      // Perform Mouse HID buttons
+        mouseSwitches();
+        break;
+      case MODE_GAMEPAD:    // Update Gamepad HID buttons
+        joystickSwitches();
+    }
+  }
+  delay(1);
 }
 
 //*********************************//
 // Joystick Functions
 //*********************************//
 
-//***INITIALIZE Memory FUNCTION***//
-// Function   : initMemory
+//***READ Memory FUNCTION***//
+// Function   : readMemory
 //
-// Description: This function initializes Memory
+// Description: This function reads values from Memory. The first time it is called, it writes default values.
 //
 // Parameters : void
 //
 // Return     : void
 //****************************************//
-void initMemory() {
+void readMemory() {
   //Check if it's first time running the code
   isConfigured = isConfiguredFlash.read();
-  delay(5);
+  delay(FLASH_DELAY_TIME);
 
-  if (isConfigured == 0) {
-    //Define default settings if it's first time running the code
-    modelNumber = 0;
-    versionNumber = 2;
-    deadzoneLevel = 6;
-    isConfigured = 1;
-    operatingMode = 0; //default to mouse mode
+  if (isConfigured == 0) { //Define default settings if it's first time running the code
 
     //Write default settings to flash storage
     modelNumberFlash.write(modelNumber);
     versionNumberFlash.write(versionNumber);
     deadzoneLevelFlash.write(deadzoneLevel);
-    isConfiguredFlash.write(isConfigured);
     operatingModeFlash.write(operatingMode);
-    delay(5);
+
+    //Mark as configured.
+    isConfiguredFlash.write(1);
+    delay(FLASH_DELAY_TIME);
 
   } else {
     //Load settings from flash storage
@@ -206,7 +277,7 @@ void initMemory() {
     versionNumber = versionNumberFlash.read();
     deadzoneLevel = deadzoneLevelFlash.read();
     operatingMode = operatingModeFlash.read();
-    delay(5);
+    delay(FLASH_DELAY_TIME);
   }
 
   //Serial print settings
@@ -216,14 +287,17 @@ void initMemory() {
   Serial.print("Version Number: ");
   Serial.println(versionNumber);
 
-  Serial.print("Deadzone Level: ");
-  Serial.println(deadzoneLevel);
-
   Serial.print("Operating Mode: ");
   Serial.println(operatingMode);
+
+  Serial.print("Deadzone Level: ");
+  Serial.println(deadzoneLevel);
 }
 
 
+//*********************************//
+// Joystick Functions
+//*********************************//
 
 //***INITIALIZE JOYSTICK FUNCTION***//
 // Function   : initJoystick
@@ -236,8 +310,12 @@ void initMemory() {
 //****************************************//
 void initJoystick()
 {
-  getJoystickDeadZone(true, false);                                         //Get joystick deadzone stored in memory                                      //Get joystick calibration points stored in flash memory
-  joystickInput.begin();                                                    //Begin joystickInput object
+  getJoystickDeadZone(true, false);                                         //Get joystick deadzone stored in memory
+  nunchuck.begin();
+
+  if (USB_DEBUG) {
+    Serial.println("Deadzone set. Nunchuck initialized.");
+  }
 }
 
 //***READ JOYSTICK FUNCTION**//
@@ -253,44 +331,98 @@ void initJoystick()
 
 void readJoystick() {
 
-  joystickInput.readData(); // Update joystick input sensors
+  nunchuck.readData(); // Get updated data from Numchuck
+  inputX = nunchuck.getJoyX();
+  inputY = nunchuck.getJoyY();
 
-  inputX = joystickInput.getJoyX();
-  inputY = joystickInput.getJoyY();
+  // Map Nunchuck axis to joystick
+  int rawX = map(inputX, JOYSTICK_NUNCHUCK_X_MIN, JOYSTICK_NUNCHUCK_X_MAX, 0, 1023); // Nunchuck returns 0 - 255
+  int rawY = map(inputY, JOYSTICK_NUNCHUCK_Y_MIN, JOYSTICK_NUNCHUCK_Y_MAX, 0, 1023);
 
-  int xMin = joystickInput.xMin;
-  int xMax = joystickInput.xMax;
-  int yMin = joystickInput.yMin;
-  int yMax = joystickInput.yMax;
+  // Apply pre-calculated response curve
+  // Scales values from -511 to 511 and applies deadband
+  int signed_x = rawX - 511;
+  int signed_y = rawY - 511;
 
-  //Map joystick x and y to joystick range
-  int outputX = map(inputX, xMin, xMax, -127, 127);
-  int outputY = map(inputY, yMin, yMax, -127, 127);
+  responseX = 0;
+  responseY = 0;
 
-  //Apply simple deadzone
-  if (outputX <= currentDeadzoneValue && outputX >= -currentDeadzoneValue)
-  {
-    outputX = 0;
+  if (signed_x < 0) {
+    responseX = -X_RESPONSE[-signed_x];
+  } else {
+    responseX =  X_RESPONSE[ signed_x];
   }
 
-  if (outputY <= currentDeadzoneValue && outputY >= -currentDeadzoneValue) {
-    outputY = 0;
+  if (signed_y < 0) {
+    responseY = -Y_RESPONSE[-signed_y];
+  } else {
+    responseY =  Y_RESPONSE[ signed_y];
   }
 
+  outputX = 0;
+  outputY = 0;
 
-
-  //Perform USB HID action
-  switch (operatingMode) {
-    case 0:
-      Mouse.move(MOUSE_MAX_XY * outputX / 127, -MOUSE_MAX_XY * outputY / 127, 0);
+  
+  switch(operatingMode) {
+    case MODE_MOUSE: // Perform Mouse HID movement
+      outputX = MOUSE_DIR_X * int(responseX * MOUSE_MAX_XY / 511.0f);
+      outputY = MOUSE_DIR_Y * int(responseY * MOUSE_MAX_XY / 511.0f);
       break;
-    case 1:
+    case MODE_GAMEPAD: // Perform joystick HID movement
+      outputX = int(responseX / 511.0f * JOYSTICK_MAX_VALUE);
+      outputY = int(responseY / 511.0f * JOYSTICK_MAX_VALUE);
+      break;
+  }
+
+  //  double outputMag = calcMag(outputX, outputY);
+  //
+  //  //Apply radial deadzone *********************************************************************
+  //  if (outputMag <= currentDeadzoneValue)
+  //  {
+  //    outputX = 0;
+  //    outputY = 0;
+  //  }
+
+}
+
+
+//***JOYSTICK ACTIONS FUNCTION**//
+// Function   : joystickActions
+//
+// Description: This function executes joystick or mouse movements.
+//
+// Parameters :  Void
+//
+// Return     : Void
+//*********************************//
+
+void joystickActions() {
+
+  switch(operatingMode) {
+    case MODE_MOUSE: // Perform Mouse HID movement
+      Mouse.move(outputX, outputY, 0); // X pixels, Y pixels, scroll wheel
+      break;
+    case MODE_GAMEPAD: // Perform joystick HID movement
       gamepadJoystickMove(outputX, outputY);
       break;
   }
+    
+}
 
-
-
+//***CALCULATE THE MAGNITUDE OF A VECTOR***//
+// Function   : calcMag
+//
+// Description: This function calculates the magntidue of a vector using the x and y values.
+//              It returns a double containing the magnitude of the vector.
+//
+// Parameters :  x : double : The x component of the vector
+//               y : double : The y component of the vector
+//
+// Return     : double
+//******************************************//
+double calcMag(double x, double y) {
+  double magnitude = sqrt(x * x + y * y);
+  return magnitude;
 }
 
 //***READ SWITCH FUNCTION**//
@@ -305,91 +437,18 @@ void readJoystick() {
 
 void readSwitch() {
 
-  //Update status of switch inputs
-  joystickInput.readData();
-
-  switchAState = joystickInput.button1State;
-  switchBState = joystickInput.button2State;
-  switchCState = joystickInput.button3State;
-  switchDState = joystickInput.button4State;
-
-  switch (operatingMode) {
-    case 0:
-      mouseSwitches();
-      break;
-    case 1:
-      joystickSwitches();
-      break;
-
-  }
+  // Update Prev Switch States
+  switchAPrevState = switchAState;
+  switchBPrevState = switchBState;
+  switchCPrevState = switchCState;
+  switchJoyPrevState = switchJoyState;
 
 
-
-}
-
-//***CHECK SETUP MODE FUNCTION**//
-// Function   : checkSetupMode
-//
-// Description: This function returns the operating mode
-//
-// Parameters :  Void
-//
-// Return     : void
-//*********************************//
-
-void checkSetupMode() {
-  joystickInput.readData();
-
-  switchAState = joystickInput.button1State;
-  switchBState = joystickInput.button2State;
-
-  if (switchAState == 1 && switchBState == 1) {
-    Serial.println("Mode selection: Press Button C to Switch Mode, Button Z to Confirm selection");
-    boolean continueLoop = true;
-    int mode = 0;
-    while (continueLoop) {
-      joystickInput.readData();
-      switchAState = joystickInput.button1State;
-      switchBState = joystickInput.button2State;
-
-      if (switchAState == 1) {
-        mode += 1;
-        if (mode > 1) {
-          mode = 0;
-        }
-        switch (mode) {
-
-          case 0:
-            Serial.println("Mouse mode selected.");
-            pixels.setPixelColor(0, pixels.Color(255, 255, 0)); //yellow
-            pixels.show();
-            break;
-
-          case 1:
-            Serial.println("Gamepad mode selected.");
-            pixels.setPixelColor(0, pixels.Color(0, 0, 255)); //blue
-            pixels.show();
-            break;
-
-          default:
-            break;
-        }
-      }
-      if (switchBState == 1) {
-        continueLoop = false;
-      }
-
-
-      delay(100);
-    }
-
-    if (mode != operatingMode) {
-      operatingMode = mode;
-      operatingModeFlash.write(operatingMode);
-      delay(5);
-    }
-
-  }
+  nunchuck.readData();
+  switchAState = !nunchuck.getButtonC(); // flip as getButtonC returns HIGH when button pressed.
+  switchBState = !nunchuck.getButtonZ();
+  switchCState = HIGH;
+  switchJoyState = HIGH;
 
 }
 
@@ -406,28 +465,28 @@ void checkSetupMode() {
 void joystickSwitches() {
 
   //Perform button actions
-  if (switchAState) {
+  if (!switchAState) {
     gamepadButtonPress(switchProperty[0].switchButtonNumber);
   }
-  else if (!switchAState && switchAPrevState) {
+  else if (switchAState && !switchAPrevState) {
     gamepadButtonRelease(switchProperty[0].switchButtonNumber);
   }
 
-  if (switchBState) {
+  if (!switchBState) {
     gamepadButtonPress(switchProperty[1].switchButtonNumber);
-  } else if (!switchBState && switchBPrevState) {
+  } else if (switchBState && !switchBPrevState) {
     gamepadButtonRelease(switchProperty[1].switchButtonNumber);
   }
 
-  if (switchCState) {
+  if (!switchCState) {
     gamepadButtonPress(switchProperty[2].switchButtonNumber);
-  } else if (!switchCState && switchCPrevState) {
+  } else if (switchCState && !switchCPrevState) {
     gamepadButtonRelease(switchProperty[2].switchButtonNumber);
   }
 
-  if (switchDState) {
+  if (!switchJoyState) {
     gamepadButtonPress(switchProperty[3].switchButtonNumber);
-  } else if (!switchDState && switchJoyPrevState) {
+  } else if (switchJoyState && !switchJoyPrevState) {
     gamepadButtonRelease(switchProperty[3].switchButtonNumber);
   }
 
@@ -446,32 +505,189 @@ void joystickSwitches() {
 void mouseSwitches() {
 
   //Perform button actions
-  if (switchAState) {
+  if (!switchAState) {
     Mouse.press(MOUSE_LEFT);
   }
-  else if (!switchAState && switchAPrevState) {
+  else if (switchAState && !switchAPrevState) {
     Mouse.release(MOUSE_LEFT);
   }
 
-  if (switchBState) {
+  if (!switchBState) {
     Mouse.press(MOUSE_RIGHT);
-  } else if (!switchBState && switchBPrevState) {
+    
+    if (switchBPrevState){
+      ZPressStartMillis = millis();
+    }
+
+    // IF LONG PRESS, ENTER SCROLL MODE
+    if ((millis()-ZPressStartMillis) >= LONG_PRESS_MILLIS){
+      int counter = 0;
+      pixels.setPixelColor(0, pixels.Color(255, 0, 255)); // Turn LED purple
+      pixels.show();
+      
+      while(1){
+        readJoystick();
+        readSwitch();
+
+        if (outputY>0){
+          Mouse.move(0,0,-1);
+          counter++;
+        } 
+        else if (outputY<0){
+          Mouse.move(0,0,1);
+          counter++;
+        } else if (outputY==0){
+          counter=0;
+        }
+
+        if (counter==0){
+          delay(2);                             // low delay before any scroll actions have been completed, continue to read switches and joystick
+        }else if (counter==1){
+          delay(500);                           // long delay after first scroll action, to allow user to do single scroll
+        } else if (counter < SLOW_SCROLL_NUM){
+          delay(SLOW_SCROLL_DELAY);             // first 10 scroll actions are slower (have longer delay) to allow precise scrolling
+        } else{
+          delay(FAST_SCROLL_DELAY);             // scroll actions after first 10 are faster (have less delay) to allow fast scrolling
+        }
+
+        if (!switchBState && switchBPrevState){
+          ZPressStartMillis=millis();
+          pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Turn LED yellow
+          pixels.show();
+          delay(5);
+          break;
+        }
+        
+      }
+      
+    }
+    
+  } else if (switchBState && !switchBPrevState) {
+    Mouse.release(MOUSE_RIGHT);
+    //Bpressed = false;
+  }
+
+  if (!switchCState) {
+    Mouse.press(MOUSE_RIGHT);
+  } else if (switchCState && !switchCPrevState) {
     Mouse.release(MOUSE_RIGHT);
   }
 
-  if (switchCState) {
-    Mouse.press(MOUSE_RIGHT);
-  } else if (!switchCState && switchCPrevState) {
-    Mouse.release(MOUSE_RIGHT);
-  }
-
-  if (switchDState) {
+  if (!switchJoyState) {
     Mouse.press(MOUSE_LEFT);
-  } else if (!switchDState && switchJoyPrevState) {
+  } else if (switchJoyState && !switchJoyPrevState) {
     Mouse.release(MOUSE_LEFT);
   }
 
 }
+
+//***CHECK SETUP MODE FUNCTION**//
+// Function   : checkSetupMode
+//
+// Description: This function sets the operating mode
+//
+// Parameters :  Void
+//
+// Return     : void
+//*********************************//
+
+void checkSetupMode() {
+  nunchuck.readData();
+
+  switchAState = nunchuck.getButtonC();
+  switchBState = nunchuck.getButtonZ();
+
+  int mode = 0;
+
+  if (switchAState == 1 && switchBState == 1) {
+    Serial.println("Mode selection: Press Button C to Switch Mode, Button Z to Confirm selection");
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0)); //green
+    pixels.show();
+    delay(3000);
+    pixels.clear();
+    pixels.show(); //turn off LEDs
+
+         switch (mode) {
+          case MODE_MOUSE:
+            pixels.setPixelColor(0, pixels.Color(255, 255, 0)); //yellow
+            pixels.show();
+            break;
+          case MODE_GAMEPAD:
+            pixels.setPixelColor(0, pixels.Color(0, 0, 255)); //blue
+            pixels.show();
+            break;
+          default:
+            break;
+        }
+  
+    boolean continueLoop = true;
+
+    while (continueLoop) {
+      nunchuck.readData();
+      switchAState = nunchuck.getButtonC();
+      switchBState = nunchuck.getButtonZ();
+
+      if (switchAState == 1) { // If button 1 pushed, change mode
+        mode += 1;
+        if (mode > 1) {
+          mode = 0;
+        }
+        switch (mode) { //Update color
+          case MODE_MOUSE:
+            Serial.println("Mouse mode selected.");
+            pixels.setPixelColor(0, pixels.Color(255, 255, 0)); //yellow
+            pixels.show();
+            break;
+          case MODE_GAMEPAD:
+            Serial.println("Gamepad mode selected.");
+            pixels.setPixelColor(0, pixels.Color(0, 0, 255)); //blue
+            pixels.show();
+            break;
+          default:
+            break;
+        }
+      }
+
+      if (switchBState == 1) { // If button 2 pushed, exit loop
+        continueLoop = false;
+      }
+
+      delay(100);
+    } // end while loop
+
+// 
+    if (mode != operatingMode) { // If operating mode has changed
+      operatingMode = mode;
+      operatingModeFlash.write(operatingMode); //write update mode to memory
+      delay(5);
+    }
+    
+    if (USB_DEBUG){
+      Serial.println("Release all buttons and reset joystick...");
+    }
+    
+    while (1) { //Blink operating mode color until reset
+      switch(mode) { 
+        case MODE_MOUSE:
+          pixels.setPixelColor(0, pixels.Color(255, 255, 0)); // Turn LED yellow
+          pixels.show();
+          break;
+        case MODE_GAMEPAD: 
+          pixels.setPixelColor(0, pixels.Color(0, 0, 255)); // Turn LED blue
+          pixels.show();
+          break;
+      }
+      delay(1000);
+      pixels.clear();
+      pixels.show();
+      delay(1000);
+    }
+    //resetJoystick();  //call reset regardless, as too much time has elapsed to enable USB
+  } // end if both switches detected
+
+}
+
+
 
 //***UPDATE JOYSTICK DEADZONE FUNCTION***//
 // Function   : updateDeadzone
@@ -488,8 +704,12 @@ void updateDeadzone(int inputDeadzoneLevel) {
     currentDeadzoneValue = int ((inputDeadzoneLevel * JOYSTICK_MAX_DEADZONE_VALUE) / JOYSTICK_MAX_DEADZONE_LEVEL);
     currentDeadzoneValue = constrain(currentDeadzoneValue, 0, JOYSTICK_MAX_DEADZONE_VALUE);
   }
-}
+  updateResponse(currentDeadzoneValue);     //Update joystick response based on deadzone
 
+  if (USB_DEBUG) {
+    Serial.print("CurrentDeadzoneValue:\t"); Serial.println(currentDeadzoneValue);
+  }
+}
 
 
 //***GAMEPAD BUTTON PRESS FUNCTION***//
@@ -977,4 +1197,19 @@ void setJoystickDeadZone(bool responseEnabled, bool apiEnabled, int inputDeadzon
 // Return     : void
 void setJoystickDeadZone(bool responseEnabled, bool apiEnabled, String optionalParameter) {
   setJoystickDeadZone(responseEnabled, apiEnabled, optionalParameter.toInt());
+}
+
+
+//*** RESET FUNCTION***//
+/// Function   : restFunc
+//
+// Description: This function resets the joystick.
+//
+// Parameters :
+//
+// Return     : void
+//*********************************//
+
+void resetJoystick(void) {
+
 }

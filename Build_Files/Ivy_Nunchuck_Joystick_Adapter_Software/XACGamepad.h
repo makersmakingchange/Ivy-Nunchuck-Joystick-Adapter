@@ -1,9 +1,8 @@
 /* 
 * File: XACGamepad.h
-* Developed by: MakersMakingChange
+* Developed by: Makers Making Change
 * Version: (20 April 2022)
 * Copyright Neil Squire Society 2022. 
-* License: This work is licensed under a GNU Public License v3.
 */
 
 
@@ -77,13 +76,13 @@ XACGamepad::XACGamepad(void)
 {
   this->usb_hid.setPollInterval(1);
   this->usb_hid.setReportDescriptor(desc_hid_report, sizeof(desc_hid_report));
-  this->usb_hid.setStringDescriptor("OpenAT Nunchuck Adapter");
+  this->usb_hid.setStringDescriptor("OpenAT Nunchuck");
 }
 
 void XACGamepad::begin(void)
 {
   this->usb_hid.begin();
-  while( !USBDevice.mounted() ) delay(1);
+  while( !USBDevice.mounted() ) delay(1); // wait until device mounted
   //Release all the buttons and center joystick
   end();
   startMillis = millis();
