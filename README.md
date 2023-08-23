@@ -19,10 +19,13 @@ This design is part of the [OpenAT Joystick project](https://github.com/makersma
 3. Connected the other end of the USB cable to the host device (use a suitable adapter if necessary).
 
 ### Swapping between Mouse and Gamepad Mode
-1. While holding down the two buttons on the Nunchuck, press and release the Reset button on the Ivy Nunchuck Adapter. Release the two buttons.
-2. Press the C button to toggle between modes. The light on the Ivy Nunchuck Adapter will indicated the current mode: USB HID Mouse - Yellow, USB HID Gamepad - Blue. 
-3. Press and release the Z button to set the mode.
-4. Reset the device.
+1.	Reset the Adapter by pressing the Reset Button or removing and replacing the USB Cable.
+2.	When the Status Light turns red, press and hold both the C Button and the Z Button on the Nunchuk.
+3.	When the Status Light turns green, release the buttons. 
+4.	Press the C button to toggle between modes. The light on the Adapter will indicate the current mode: USB HID Mouse - Yellow, USB HID Gamepad - Blue. 
+5.	Press and release the Z button to set the mode. The light will blink.
+6.	Reset the Adapter by pressing the Reset Button or removing and replacing the USB Cable.
+
 
 ### Mouse Mode
 1. Move the joystick to control the cursor.
@@ -70,7 +73,7 @@ The Maker Guide provides an overview of how to build, program, and test the devi
 
 ### 2. Order the Off-The-Shelf Components
 
-The [Bill of Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM_v0.1.1.xlsx) lists all of the parts and components required to build the Ivy Nunchuck Adapter. 
+The [Bill of Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM.xlsx) lists all of the parts and components required to build the Ivy Nunchuck Adapter. 
 
 
 ### 3. Print the 3D Printable Components
@@ -87,11 +90,11 @@ Reference the [Maker Guide](/Documentation/Ivy-Nunchuck-Adapter_Maker_Guide_v0.1
 ### Documentation
 | Document             | Version  | Link |
 |----------------------|----------|------|
-| Design Rationale     | 0.1      | [Ivy-Nunchuck-Joystick-Adapter_Design_Rationale](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Design_Rationale_v0.1.pdf)  |
-| Maker Guide          | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Maker_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Maker_Guide_v0.1.1.pdf)          |
-| Bill of Materials    | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM_v0.1.1.xlsx)           |
-| Bill of Materials    | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM_v0.1.1.csv)            |
-| User Guide           | 0.1      | [Ivy-Nunchuck-Joystick-Adapter_User_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_User_Guide_v0.1.pdf)              |
+| Design Rationale     | 0.1      | [Ivy-Nunchuck-Joystick-Adapter_Design_Rationale](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Design_Rationale.pdf)  |
+| Maker Guide          | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Maker_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_Maker_Guide.pdf)          |
+| Bill of Materials    | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM.xlsx)           |
+| Bill of Materials    | 0.1.1    | [Ivy-Nunchuck-Joystick-Adapter_Bill_of_Materials](/Documentation/Ivy-Nunchuck-Joystick-Adapter_BOM.csv)            |
+| User Guide           | 0.1      | [Ivy-Nunchuck-Joystick-Adapter_User_Guide](/Documentation/Ivy-Nunchuck-Joystick-Adapter_User_Guide.pdf)              |
 
 ### Design Files
  - [CAD Files](/Design_Files/CAD)
@@ -118,11 +121,11 @@ The software code is based on joystick software created by Milad Hajihassan / Ma
 Copyright (c) 2023 Neil Squire / Makers Making Change.
 
 This repository describes Open Hardware:
- - Everything needed or used to design, make, test, or prepare the Ivy Nunchuck Joystick Adapter is licensed under the [CERN 2.0 Weakly Reciprocal license (CERN-OHL-W v2) or later](https://ohwr.org/project/cernohl/wikis/Documents/CERN-OHL-version-2) .
+ - Everything needed or used to design, make, test, or prepare the Ivy Nunchuck Joystick Adapter is licensed under the [CERN 2.0 Weakly Reciprocal license (CERN-OHL-W v2) or later](https://cern.ch/cern-ohl ) .
  - All software is under the [GNU General Public License v3.0 (GPL-3.0)](https://www.gnu.org/licenses/gpl.html).
  - Accompanying material such as instruction manuals, videos, and other copyrightable works that are useful but not necessary to design, make, test, or prepare the Ivy Nunchuck Joystick Adapter are published under a [Creative Commons Attribution-ShareAlike 4.0 license (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) .
 
-You may redistribute and modify this documentation and make products using it under the terms of the CERN-OHL-W v2 (https:/cern.ch/cern-ohl).
+You may redistribute and modify this documentation and make products using it under the terms of the [CERN-OHL-W v2](https://cern.ch/cern-ohl).
 This documentation is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR PURPOSE.
 Please see the CERN-OHL-W v2 for applicable conditions.
 

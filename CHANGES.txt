@@ -1,3 +1,8 @@
+Version 0.1.2 | 2023-Jul-24
+ - Implemented scroll in code
+ - Fixed software mode switching
+ - Updated documentation
+
 Version 0.1.1 | 2023-Jul-13
  - Modified top and bottom enclosure for better fit and function
 
