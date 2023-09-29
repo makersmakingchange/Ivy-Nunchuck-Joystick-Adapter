@@ -1,3 +1,9 @@
+Version 1.0 | 2023-Sep-29
+ - Extended enclosure to allow more cable clearance
+ - reoriented, expanded label on top
+ - 
+
+
 Version 0.1.2 | 2023-Jul-24
  - Implemented scroll in code
  - Fixed software mode switching
