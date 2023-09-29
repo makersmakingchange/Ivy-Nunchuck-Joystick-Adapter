@@ -1,0 +1,92 @@
+title: Ivy Nunchuck Joystick Adapter
+description: The Ivy Nunchuck Joystick Adapter is an Open Assistive Technology (OpenAT)
+  device that enables a user to utilize a Nintendo Nunchuk Controller or generic
+  Nunchuck Controller as a USB Gamepad or USB Mouse. It is a cost-effective,
+  customizable option for computer access and adapted gaming. The device
+  consists of commercial-off-the-shelf electronic components, a 3D printed
+  enclosure, and custom firmware. Assembly of the device requires no specialized
+  tools beyond a 3D printer to create the enclosure and a computer to flash the
+  firmware.
+intended-use: "The Ivy Nunchuck Joystick Adapter is intended to be used by people with
+  disabilities as an alternative input device for computers, mobile devices, and
+  gaming consoles. It is compatible with the Xbox Adaptive Controller, and any
+  other host device that is compatible with a USB HID Mouse or USB HID Gamepad.
+  "
+keywords:
+  - openAT
+  - disability
+  - accesibility
+  - mouse
+  - joystick
+  - gamepad
+  - assistive technology
+project-link: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter
+image: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/blob/main/Photos/Ivy_Nunchuck_Joystick_Adapter.png
+made: true
+made-independently: false
+license:
+  hardware: CERN-OHL-W-2.0
+  documentation: CC-BY-SA-4.0
+  software: GPL-3.0-or-later
+licensor:
+  name: Jacob McIvor
+  affiliation: Neil Squire Society
+  email: jakem@neilsquire.ca
+okh-manifest-version: 1.0.0
+date-created: 2023-09-27
+date-updated: 2023-09-29
+manifest-author:
+  name: Jacob McIvor
+  affiliation: Neil Squire Society
+  email: jakem@neilsquire.ca
+manifest-language: en-CA
+contact:
+  name: Makers Making Change
+  affiliation: Neil Squire Society
+  email: info@makersmakingchange.com
+  social:
+    - platform: Instagram
+      user-handle: "@makermakingchange"
+    - platform: Twitter
+      user-handle: "@makermakechange"
+contributors:
+  - name: Jacob McIvor
+    affiliation: Neil Squire Society
+    email: jakem@neilsquire.ca
+  - name: Milad Ha
+    affiliation: Neil Squire Society
+    email: miladh@neilsquire.ca
+  - name: Josie Versloot
+    affiliation: Neil Squire Society
+    email: josiev@neilsquire.ca
+  - name: Stephen Moyer
+    affiliation: Neil Squire Society
+    email: stephenm@neilsquire.ca
+  - name: Tyler Fentie
+    affiliation: Neil Squire Society
+    email: tylerf@neilsquire.ca
+version: "1.0"
+development-stage: product
+documentation-home: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter
+archive-download: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/archive/refs/heads/main.zip
+design-files:
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Design_Files/CAD_Files
+    title: CAD Files
+bom: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_BOM.csv
+making-instructions:
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_Maker_Guide.pdf
+    title: Ivy Nunchuck Joystick Adapter Maker Guide
+manufacturing-files:
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Build_Files/3D_Printing_Files
+    title: 3D Printing Files
+operating-instructions:
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_User_Guide.pdf
+    title: Ivy Nunchuck Joystick Adapter User Guide
+software:
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Build_Files/Firmware_Files
+    title: Ivy Nunchuck Joystick Adapter Firmware
+sub-parts:
+  - title: Adafruit QT Py SAMD21 Development Board
+    web: https://github.com/adafruit/Adafruit-QT-Py-PCB
+  - title: Adafruit Wii Nunchuck Breakout Adapter PCB
+    web: https://github.com/adafruit/Adafruit-Wii-Nunchuck-Breakout-Adapter-PCB
