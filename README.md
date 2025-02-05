@@ -1,7 +1,7 @@
  # Ivy Nunchuck Joystick Adapter
 
 The Ivy Nunchuck Adapter allows a Nunchuck Controller to be used as a USB HID Mouse or USB HID Gamepad. 
-s
+
 Commercially available Nunchuck Controllers have a thumbstick and two buttons. The thumbstick has a range of motion approximately ±30° (~±15 mm motion) and requires about 100 grams-force to fully deflect.
 
 The device is comprised of off-the-shelf electronics that are assembled without the need to solder into a 3D printed enclosure. The overall cost of materials for the adapter is $20 (plus $8 for component shipping). Paired with an old Nintendo Wii Nunchuck controller or a Nunchuck Controller replacement ($10-$20), this provides a cost effective solution for an input device.
@@ -71,7 +71,7 @@ The [Maker Guide](/Documentation/Ivy_Nunchuck_Adapter_Maker_Guide.pdf) provides 
 Work through the Maker Checklist. Confirm details and customization options with the user.
 
 ### 3. Order the Off-The-Shelf Components
-The [Bill of Materials](/Documentation/Ivy_Nunchuck_Joystick_Adapter_BOM.xlsx) lists all of the parts and components required to build the device.
+The Bill of Materials([.csv](/Documentation/Ivy_Nunchuck_Joystick_Adapter_BOM.csv))([.xls](/Documentation/Working_Documents/Ivy_Nunchuck_Joystick_Adapter_BOM.xlsx)) lists all of the parts and components required to build the device.
 
 ### 4. Print the 3D Printable Components
 Print the components for the enclosure. The print files can be found in the [/Build_Files/3D_Printing_Files](/Build_Files/3D_Printing/) folder. Reference the 3D Printing Guide section in the [Maker Guide](/Documentation/Ivy_Nunchuck_Adapter_Maker_Guide.pdf).
@@ -101,7 +101,7 @@ Reference the [Maker Guide](/Documentation/Ivy_Nunchuck_Adapter_Maker_Guide.pdf)
 
 
 ## License
-Copyright (c) 2023 Neil Squire / Makers Making Change.
+Copyright (c) 2023-2025 Neil Squire / Makers Making Change.
 
 This repository describes Open Hardware:
  - Everything needed or used to design, make, test, or prepare the Ivy Nunchuck Joystick Adapter is licensed under the [CERN 2.0 Weakly Reciprocal license (CERN-OHL-W v2) or later](https://cern.ch/cern-ohl ) .
@@ -142,7 +142,6 @@ Makers Making Change leverages the capacity of community based Makers, Disabilit
 
  - Website: [www.MakersMakingChange.com](https://www.makersmakingchange.com/)
  - GitHub: [makersmakingchange](https://github.com/makersmakingchange)
- - Twitter: [@makermakechange](https://twitter.com/makermakechange)
  - Instagram: [@makersmakingchange](https://www.instagram.com/makersmakingchange)
  - Facebook: [makersmakechange](https://www.facebook.com/makersmakechange)
  - LinkedIn: [Neil Squire Society](https://www.linkedin.com/company/neil-squire-society/)
