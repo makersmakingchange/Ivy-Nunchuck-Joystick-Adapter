@@ -70,20 +70,20 @@ development-stage: product
 documentation-home: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter
 archive-download: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/archive/refs/heads/main.zip
 design-files:
-  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Design_Files/CAD_Files
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Design_Files/CAD_Files
     title: CAD Files
-bom: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_BOM.csv
+bom: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Documentation/Ivy_Nunchuck_Joystick_Adapter_BOM.csv
 making-instructions:
-  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_Maker_Guide.pdf
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Documentation/Ivy_Nunchuck_Joystick_Adapter_Maker_Guide.pdf
     title: Ivy Nunchuck Joystick Adapter Maker Guide
 manufacturing-files:
-  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Build_Files/3D_Printing_Files
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Build_Files/3D_Printing_Files
     title: 3D Printing Files
 operating-instructions:
-  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Documentation/Ivy_Nunchuck_Joystick_Adapter_User_Guide.pdf
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Documentation/Ivy_Nunchuck_Joystick_Adapter_User_Guide.pdf
     title: Ivy Nunchuck Joystick Adapter User Guide
 software:
-  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/master/Build_Files/Firmware_Files
+  - path: https://github.com/makersmakingchange/Ivy-Nunchuck-Joystick-Adapter/tree/main/Build_Files/Firmware_Files
     title: Ivy Nunchuck Joystick Adapter Firmware
 sub-parts:
   - title: Adafruit QT Py SAMD21 Development Board
